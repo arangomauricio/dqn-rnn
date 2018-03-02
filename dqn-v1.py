@@ -104,6 +104,8 @@ LAMBDA = 0.001  # speed of decay
 
 SARSA = False
 
+STEP_LEARNING_MODE = True
+
 
 class Agent:
     steps = 0
@@ -241,13 +243,13 @@ class Environment:
             if done:  # terminal state
                 s_ = None
 
-
-
             agent.observe((s, a, r, s_))
             #agent.observe((s, a, r_adjusted, s_))
 
-            if learning_flag:
-                agent.replay(BATCH_SIZE)
+            # learn at each step
+            if STEP_LEARNING_MODE:
+                if learning_flag:
+                    agent.replay(BATCH_SIZE)
 
             s = s_
             #s = numpy.copy(s_) # not necessary because env.step returns a new array
@@ -256,6 +258,11 @@ class Environment:
             step_cnt = step_cnt + 1
             if done:
                 #print("******************************************************Total reward:", R)
+
+                # learn at end of episode
+                if not STEP_LEARNING_MODE:
+                    if learning_flag:
+                        agent.replay(BATCH_SIZE)
                 break
         return R
 
