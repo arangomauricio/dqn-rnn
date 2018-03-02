@@ -104,7 +104,9 @@ LAMBDA = 0.001  # speed of decay
 
 SARSA = False
 
-STEP_LEARNING_MODE = True
+STEP_LEARNING_MODE = False
+
+NUM_STATES = 3
 
 
 class Agent:
@@ -225,6 +227,9 @@ class Environment:
 
     def run(self, agent, learning_flag):
         s = self.env.reset()
+        if NUM_STATES < self.stateCnt:
+            s = s[0:NUM_STATES]  # use the first NUM_STATES in the state vector
+
         #s = numpy.copy(self.env.reset()) # not necessary because env.reset returns a new array
         #s = self.normalize(s)
         R = 0
@@ -240,11 +245,15 @@ class Environment:
             s_, r, done, info = self.env.step(a)
             #s_ = self.normalize(s_)
 
+            if NUM_STATES < self.stateCnt:
+                s_ = s_[0:NUM_STATES]  # use the first NUM_STATES in the state vector
+
             if done:  # terminal state
                 s_ = None
 
             agent.observe((s, a, r, s_))
             #agent.observe((s, a, r_adjusted, s_))
+
 
             # learn at each step
             if STEP_LEARNING_MODE:
@@ -298,8 +307,11 @@ env = Environment(PROBLEM)
 
 random.seed(5)
 
+if NUM_STATES == env.stateCnt:
+    agent = Agent(env.stateCnt, env.actionCnt)
+else:
+    agent = Agent(NUM_STATES, env.actionCnt)
 
-agent = Agent(env.stateCnt, env.actionCnt)
 randomAgent = RandomAgent(env.actionCnt)
 
 episodes_count = 0
