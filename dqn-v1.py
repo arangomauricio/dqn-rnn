@@ -104,7 +104,7 @@ LAMBDA = 0.001  # speed of decay
 
 SARSA = False
 
-STEP_LEARNING_MODE = False
+STEP_LEARNING_MODE = True
 
 NUM_STATES = 3
 
