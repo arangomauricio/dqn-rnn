@@ -145,6 +145,8 @@ LAMBDA = 0.001  # speed of decay
 
 SARSA = False
 
+STEP_LEARNING_MODE = True
+
 NUM_STATES = 3
 
 
@@ -271,8 +273,8 @@ class Environment:
 
     def run(self, agent, learning_flag):
         s = self.env.reset()
-        #s = np.concatenate([s[0:1], s[2:3]])
-        s = s[0:3]
+        if NUM_STATES < self.stateCnt:
+            s = s[0:NUM_STATES]  # use the first NUM_STATES in the state vector
 
         #s = numpy.copy(self.env.reset()) # not necessary because env.reset returns a new array
         #s = self.normalize(s)
@@ -289,24 +291,22 @@ class Environment:
             s_, r, done, info = self.env.step(a)
             #s_ = self.normalize(s_)
 
-            #s_ = s_[0:1]   # use only linear position and angular position
-            #s_ = np.concatenate([s_[0:1], s_[2:3]])
-            s_ = s_[0:3]
+
+            if NUM_STATES < self.stateCnt:
+                s_ = s_[0:NUM_STATES]  # use the first NUM_STATES in the state vector
+
 
             if done:  # terminal state
                 s_ = None
-
-                if PROBLEM == 'CartPole-v0':  # For cartpole
-                    if step_cnt < 196:
-                        r = -10.0             # punish episodes that do not finish above the desired average step cnt.
-
 
 
             agent.observe((s, a, r, s_))
             #agent.observe((s, a, r_adjusted, s_))
 
-            #if learning_flag:
-                #agent.replay(BATCH_SIZE)
+            # learn at each step
+            if STEP_LEARNING_MODE:
+                if learning_flag:
+                    agent.replay(BATCH_SIZE)
 
             s = s_
             #s = numpy.copy(s_) # not necessary because env.step returns a new array
@@ -316,10 +316,9 @@ class Environment:
             if done:
                 #print("******************************************************Total reward:", R)
 
-                # Learn at end of episode
-                if learning_flag:
-                    print("learn")
-                    agent.replay(BATCH_SIZE)
+                if not STEP_LEARNING_MODE:
+                    if learning_flag:
+                        agent.replay(BATCH_SIZE)
                 break
         return R
 
