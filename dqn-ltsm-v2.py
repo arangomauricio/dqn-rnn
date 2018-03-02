@@ -15,9 +15,6 @@
 
 import random, numpy, math, gym
 
-from py4j.java_gateway import JavaGateway
-from py4j.java_gateway import GatewayParameters
-
 
 
 # -------------------- BRAIN ---------------------------
@@ -352,47 +349,8 @@ class MovingAverage:
 
 
 
-# -------------------- PROBLEM -------------------------
-class InsuranceClaim:
-    next_state = []
-    rstate = []
-
-
-    def __init__(self):
-        self.gateway = JavaGateway(gateway_parameters=GatewayParameters(auto_convert=True))
-        self.jApp = self.gateway.entry_point
-        self.numStateDimensions = self.jApp.getNumStateDimensions()
-        self.numActions = self.jApp.getNumActions()
-        print("DEBUG  numActions: ", self.numActions)
-        self.step_count = 0
-
-    def reset(self):
-        self.step_count = 0  # reset step counter
-        rstate = self.jApp.resetState(0)
-        return numpy.array(list(rstate))
-
-    def step(self, a):
-        self.step_count += 1
-        next_state = self.jApp.getNextState(a)
-        nstate = list(next_state)
-        #print("DEBUG  next_state: ", nstate)
-        done = self.jApp.endState()
-        if (done == False) and (self.step_count == 200):
-            done = True
-            #print("DEBUG  step_count: ", self.step_count)
-
-        info = {}  # place holder to make it compatible with OpenAI interface
-
-        reward = self.jApp.getReward()
-        return (numpy.array(nstate), reward, done, info)
-
-    def activate_conditional_dimension(self):
-        new_value = self.jApp.activateConditionalDimension()
-        print("DEBUG  new_value: ", new_value)
-
 
 # -------------------- MAIN ----------------------------
-#PROBLEM = 'insurance-claim-1'
 #PROBLEM = 'MountainCar-v0'
 PROBLEM = 'CartPole-v0'
 env = Environment(PROBLEM)
